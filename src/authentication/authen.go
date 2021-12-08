@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"context"
+	"os"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
@@ -21,10 +22,10 @@ func (authen DefaultAuthentication) GetProvider() (*oidc.Provider, *oauth2.Confi
 		return nil, nil, err
 	}
 	config := oauth2.Config{
-		ClientID:     "defaultClientOpenId",
-		ClientSecret: "secret",
+		ClientID:     os.Getenv("client_id"),
+		ClientSecret: os.Getenv("client_secret"),
 		Endpoint:     provider.Endpoint(),
-		RedirectURL:  "http://localhost:3000/api/openid/auth/callback",
+		RedirectURL:  os.Getenv("redirect_url"),
 		Scopes:       []string{oidc.ScopeOpenID, "profile"},
 	}
 	return provider, &config, nil
