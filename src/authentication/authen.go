@@ -17,7 +17,7 @@ type DefaultAuthentication struct {
 }
 
 func (authen DefaultAuthentication) GetProvider() (*oidc.Provider, *oauth2.Config, error) {
-	provider, err := oidc.NewProvider(authen.context, "https://identity-server-4213.herokuapp.com")
+	provider, err := oidc.NewProvider(authen.context, os.Getenv("AuthenUrl"))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -28,6 +28,7 @@ func (authen DefaultAuthentication) GetProvider() (*oidc.Provider, *oauth2.Confi
 		RedirectURL:  os.Getenv("redirect_url"),
 		Scopes:       []string{oidc.ScopeOpenID, "profile"},
 	}
+
 	return provider, &config, nil
 }
 

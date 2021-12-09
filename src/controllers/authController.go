@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 	"rosered/passbook-management/src/authentication"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 type AuthenController interface{}
@@ -47,11 +45,4 @@ func (authenController DefaultAuthenController) CallbackHandler(w http.ResponseW
 	}
 
 	http.Redirect(w, r, originPath.Value+"?access_token="+oauth2Token.AccessToken, http.StatusFound)
-}
-
-// fiber unuse this function
-func Callback(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{
-		"message": "hello",
-	})
 }
