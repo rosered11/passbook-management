@@ -1,8 +1,6 @@
 package database
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
@@ -16,18 +14,18 @@ type DefaultTransactionRepository struct {
 }
 
 func (transactionRepo DefaultTransactionRepository) Create(description string, amount int32) uint {
-	transaction := Transaction{Description: description, Amounts: amount, Created: time.Now()}
-	transactionRepo.db.Create(transaction)
-	return transaction.Id
+	transaction := Transaction{Description: description, Amounts: amount}
+	transactionRepo.db.Create(&transaction)
+	return transaction.ID
 }
 
 func (transactionRepo DefaultTransactionRepository) CreateWithTrx(db *gorm.DB, description string, amount int32) (*uint, error) {
-	transaction := Transaction{Description: description, Amounts: amount, Created: time.Now()}
-	result := db.Create(transaction)
+	transaction := Transaction{Description: description, Amounts: amount}
+	result := db.Create(&transaction)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &transaction.Id, nil
+	return &transaction.ID, nil
 }
 
 // func (transactionRepo DefaultTransactionRepository) Find() uint {

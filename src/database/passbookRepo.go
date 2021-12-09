@@ -1,13 +1,12 @@
 package database
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
 type PassbookRepository interface {
 	Find(owner string) (*Passbook, error)
+	FindWithDate(owner string, currentDate string) (*Passbook, error)
 	Create(name, owner string, totalAmount int32) uint
 	CreateWithTrx(db *gorm.DB, name, owner string, totalAmount int32) (*uint, error)
 	Update(passbook *Passbook) uint
@@ -31,24 +30,33 @@ func (passbookRepository DefaultPassbookRepository) Find(owner string) (*Passboo
 	return &passbook, nil
 }
 
-func (passbookRepository DefaultPassbookRepository) Create(name, owner string, totalAmount int32) uint {
-	passbook := Passbook{Created: time.Now(), Updated: time.Now(), Name: name, TotalAmount: totalAmount}
-	passbookRepository.db.Create(passbook)
-	return passbook.Id
-}
-
-func (passbookRepository DefaultPassbookRepository) CreateWithTrx(db *gorm.DB, name, owner string, totalAmount int32) (*uint, error) {
-	passbook := Passbook{Created: time.Now(), Updated: time.Now(), Name: name, TotalAmount: totalAmount}
-	result := db.Create(passbook)
+func (passbookRepository DefaultPassbookRepository) FindWithDate(owner string, currentDate string) (*Passbook, error) {
+	var passbook Passbook
+	result := passbookRepository.db.First(&passbook, "owner = ? AND updated_at >= ?", owner, currentDate)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &passbook.Id, nil
+	return &passbook, nil
+}
+
+func (passbookRepository DefaultPassbookRepository) Create(name, owner string, totalAmount int32) uint {
+	passbook := Passbook{Name: name, TotalAmount: totalAmount, Owner: owner}
+	passbookRepository.db.Create(&passbook)
+	return passbook.ID
+}
+
+func (passbookRepository DefaultPassbookRepository) CreateWithTrx(db *gorm.DB, name, owner string, totalAmount int32) (*uint, error) {
+	passbook := Passbook{Name: name, TotalAmount: totalAmount, Owner: owner}
+	result := db.Create(&passbook)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &passbook.ID, nil
 }
 
 func (passbookRepository DefaultPassbookRepository) Update(passbook *Passbook) uint {
 	passbookRepository.db.Save(&passbook)
-	return passbook.Id
+	return passbook.ID
 }
 
 func (passbookRepository DefaultPassbookRepository) UpdateWithTrx(db *gorm.DB, passbook *Passbook) (*uint, error) {
@@ -56,5 +64,5 @@ func (passbookRepository DefaultPassbookRepository) UpdateWithTrx(db *gorm.DB, p
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &passbook.Id, nil
+	return &passbook.ID, nil
 }

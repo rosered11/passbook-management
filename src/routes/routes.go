@@ -43,4 +43,5 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	// controller path
 	passbook := api.Group("passbook")
 	passbook.Post("/", passbookController.CreatePassbook)
+	passbook.Get("/owner/:owner", passbookController.GetPassbook)
 }

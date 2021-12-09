@@ -23,6 +23,7 @@ import (
 type PassbookController interface {
 	CreateGetPassbookHandler(w http.ResponseWriter, r *http.Request)
 	CreatePassbook(c *fiber.Ctx) error
+	GetPassbook(c *fiber.Ctx) error
 }
 
 type DefaultPassbookController struct {
@@ -32,7 +33,7 @@ type DefaultPassbookController struct {
 }
 
 func NewPassbookController(context context.Context, authen authentication.Authentication, passbookService services.PassbookService) PassbookController {
-	return DefaultPassbookController{context: context, authen: authen}
+	return DefaultPassbookController{context: context, authen: authen, passbookService: passbookService}
 }
 
 func (passbookController DefaultPassbookController) CreateGetPassbookHandler(w http.ResponseWriter, r *http.Request) {
@@ -71,19 +72,37 @@ func (passbookController DefaultPassbookController) CreateGetPassbookHandler(w h
 	w.Write(data)
 }
 
-// fiber unuse this function
+func (passbookController DefaultPassbookController) GetPassbook(c *fiber.Ctx) error {
+	err := validateToken(c, passbookController.context)
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+	result, err := passbookController.passbookService.FindPassbookCurrentDate(c.Params("owner"))
+	if err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+
+	return c.JSON(result)
+}
+
 func (passbookController DefaultPassbookController) CreatePassbook(c *fiber.Ctx) error {
 	err := validateToken(c, passbookController.context)
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
 		return c.JSON(fiber.Map{"message": err.Error()})
 	}
-	var request dto.PassbookRequest
+	request := new(dto.PassbookRequest)
 	if err := c.BodyParser(request); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{"message": err.Error()})
 	}
-	passbookController.passbookService.Add(request)
+	err = passbookController.passbookService.Add(request)
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
 
 	c.Status(fiber.StatusNoContent)
 	return nil

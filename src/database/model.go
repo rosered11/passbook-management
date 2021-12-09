@@ -1,21 +1,18 @@
 package database
 
 import (
-	"time"
+	"gorm.io/gorm"
 )
 
 type Transaction struct {
-	Id          uint
+	gorm.Model
 	Description string
 	Amounts     int32
-	Created     time.Time
 }
 
 type Passbook struct {
-	Id          uint
+	gorm.Model
 	TotalAmount int32
 	Name        string
 	Owner       string
-	Created     time.Time
-	Updated     time.Time
 }

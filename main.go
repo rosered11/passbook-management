@@ -12,7 +12,7 @@ import (
 func main() {
 	// Setup database
 	db := database.Connect()
-	//database.AutoMigrate(db)
+	database.AutoMigrate(db)
 
 	port := os.Getenv("PORT")
 

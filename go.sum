@@ -237,6 +237,8 @@ github.com/rs/zerolog v1.15.0/go.mod h1:xYTKnLHcpfU2225ny5qZjxnj9NvkumZYjJHlAThC
 github.com/s12v/go-jwks v0.2.1 h1:2zShofKJoSXztWyh5ASPfpzuQrE+b+Sum9JJdif05Po=
 github.com/s12v/go-jwks v0.2.1/go.mod h1:DmmtP4Etd59Y90j8zmTS4z61MKu0QPvgioAXv+mqyjQ=
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
+github.com/shamaton/zeroformatter v1.0.1 h1:sy2vSFx+fhPgm4vINiO2mjs4lfItoR1Pc0Ngp7DmCxY=
+github.com/shamaton/zeroformatter v1.0.1/go.mod h1:4vJ8JOtbcmCWAtGNlqP2KIkdLOQiDapR/snC2Repmuw=
 github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24/go.mod h1:M+9NzErvs504Cn4c5DxATwIqPbtswREoFCre64PpcG4=
 github.com/shopspring/decimal v1.2.0/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=

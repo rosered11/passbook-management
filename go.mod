@@ -1,4 +1,5 @@
 module rosered/passbook-management
+
 // +heroku goVersion go1.17
 go 1.17
 
@@ -33,6 +34,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/s12v/go-jwks v0.2.1 // indirect
+	github.com/shamaton/zeroformatter v1.0.1 // indirect
 	github.com/square/go-jose v2.6.0+incompatible // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.31.0 // indirect
