@@ -18,11 +18,11 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	// authentication
 	authen := authentication.NewAuthentication(ctx)
 
-	// repositories
-	transactionRepo := database.NewTransactionRepository(db)
+	// unitofwork + repositories
+	unitofwork := database.NewUnitOfWork(db)
 
 	// services
-	passbookService := services.NewPassbookService(transactionRepo)
+	passbookService := services.NewPassbookService(unitofwork)
 
 	// controller
 	authenController := controllers.NewAuthenController(ctx, authen)

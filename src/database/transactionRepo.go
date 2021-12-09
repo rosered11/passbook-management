@@ -8,6 +8,7 @@ import (
 
 type TransactionRepository interface {
 	Create(description string, amount int32) uint
+	CreateWithTrx(db *gorm.DB, description string, amount int32) (*uint, error)
 }
 
 type DefaultTransactionRepository struct {
@@ -18,6 +19,15 @@ func (transactionRepo DefaultTransactionRepository) Create(description string, a
 	transaction := Transaction{Description: description, Amounts: amount, Created: time.Now()}
 	transactionRepo.db.Create(transaction)
 	return transaction.Id
+}
+
+func (transactionRepo DefaultTransactionRepository) CreateWithTrx(db *gorm.DB, description string, amount int32) (*uint, error) {
+	transaction := Transaction{Description: description, Amounts: amount, Created: time.Now()}
+	result := db.Create(transaction)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &transaction.Id, nil
 }
 
 // func (transactionRepo DefaultTransactionRepository) Find() uint {

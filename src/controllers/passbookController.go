@@ -73,17 +73,23 @@ func (passbookController DefaultPassbookController) CreateGetPassbookHandler(w h
 
 // fiber unuse this function
 func (passbookController DefaultPassbookController) CreatePassbook(c *fiber.Ctx) error {
-	err := validateToken(c)
+	err := validateToken(c, passbookController.context)
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
 		return c.JSON(fiber.Map{"message": err.Error()})
 	}
+	var request dto.PassbookRequest
+	if err := c.BodyParser(request); err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+	passbookController.passbookService.Add(request)
 
 	c.Status(fiber.StatusNoContent)
 	return nil
 }
 
-func validateToken(c *fiber.Ctx) error {
+func validateToken(c *fiber.Ctx, context context.Context) error {
 	headertoken := string(c.Request().Header.Peek("Authorization"))
 
 	// Split bearer from token
@@ -93,7 +99,7 @@ func validateToken(c *fiber.Ctx) error {
 	}
 
 	token, err := jwt.Parse(splitToken[1], func(token *jwt.Token) (interface{}, error) {
-		set, err := jwk.Fetch(c.Context(), os.Getenv("AuthenUrl")+os.Getenv("AuthenJwksPathUrl"))
+		set, err := jwk.Fetch(context, os.Getenv("AuthenUrl")+os.Getenv("AuthenJwksPathUrl"))
 		if err != nil {
 			return nil, err
 		}
