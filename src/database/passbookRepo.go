@@ -4,63 +4,54 @@ import (
 	"gorm.io/gorm"
 )
 
+const DEFAULT_PASSBOOK_NAME string = "passbook"
+
 type PassbookRepository interface {
-	Find(owner string) (*Passbook, error)
-	FindWithDate(owner string, currentDate string) (*Passbook, error)
-	Create(name, owner string, totalAmount int32) uint
-	CreateWithTrx(db *gorm.DB, name, owner string, totalAmount int32) (*uint, error)
-	Update(passbook *Passbook) uint
-	UpdateWithTrx(db *gorm.DB, passbook *Passbook) (*uint, error)
+	FindWithOwner(db *gorm.DB, passbook interface{}, owner string) error
+	FindWithOwnerAndDate(db *gorm.DB, passbook interface{}, owner string, currentDate string) error
+	FindWithDate(db *gorm.DB, datenow string) (*[]Passbook, error)
+	Create(db *gorm.DB, passbook *Passbook) (*uint, error)
+	Update(db *gorm.DB, passbook *Passbook) (*uint, error)
 }
 
 type DefaultPassbookRepository struct {
-	db *gorm.DB
+	repository Repository
 }
 
-func NewPassbookRepository(db *gorm.DB) PassbookRepository {
-	return DefaultPassbookRepository{db: db}
+func NewPassbookRepository(repository Repository) PassbookRepository {
+	return DefaultPassbookRepository{repository: repository}
 }
 
-func (passbookRepository DefaultPassbookRepository) Find(owner string) (*Passbook, error) {
-	var passbook Passbook
-	result := passbookRepository.db.First(&passbook, "owner = ?", owner)
-	if result.Error != nil {
-		return nil, result.Error
+func (passbookRepository DefaultPassbookRepository) FindWithOwner(db *gorm.DB, passbook interface{}, owner string) error {
+	passbookRepository.repository.Find(db, passbook, "owner = ? AND name = ?", owner, DEFAULT_PASSBOOK_NAME)
+	return nil
+}
+
+func (passbookRepository DefaultPassbookRepository) FindWithDate(db *gorm.DB, datenow string) (*[]Passbook, error) {
+	var passbooks []Passbook
+	_, err := passbookRepository.repository.Find(db, &passbooks, "updated_at >= ?", datenow)
+	if err != nil {
+		return nil, err
 	}
-	return &passbook, nil
+	return &passbooks, nil
 }
 
-func (passbookRepository DefaultPassbookRepository) FindWithDate(owner string, currentDate string) (*Passbook, error) {
-	var passbook Passbook
-	result := passbookRepository.db.First(&passbook, "owner = ? AND updated_at >= ?", owner, currentDate)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &passbook, nil
+func (passbookRepository DefaultPassbookRepository) FindWithOwnerAndDate(db *gorm.DB, passbook interface{}, owner string, currentDate string) error {
+	passbookRepository.repository.Find(db, passbook, "owner = ? AND name = ? AND updated_at >= ?", owner, DEFAULT_PASSBOOK_NAME, currentDate)
+	return nil
 }
 
-func (passbookRepository DefaultPassbookRepository) Create(name, owner string, totalAmount int32) uint {
-	passbook := Passbook{Name: name, TotalAmount: totalAmount, Owner: owner}
-	passbookRepository.db.Create(&passbook)
-	return passbook.ID
-}
-
-func (passbookRepository DefaultPassbookRepository) CreateWithTrx(db *gorm.DB, name, owner string, totalAmount int32) (*uint, error) {
-	passbook := Passbook{Name: name, TotalAmount: totalAmount, Owner: owner}
-	result := db.Create(&passbook)
+func (passbookRepository DefaultPassbookRepository) Create(db *gorm.DB, passbook *Passbook) (*uint, error) {
+	passbook.Name = DEFAULT_PASSBOOK_NAME
+	result := db.Create(passbook)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &passbook.ID, nil
 }
 
-func (passbookRepository DefaultPassbookRepository) Update(passbook *Passbook) uint {
-	passbookRepository.db.Save(&passbook)
-	return passbook.ID
-}
-
-func (passbookRepository DefaultPassbookRepository) UpdateWithTrx(db *gorm.DB, passbook *Passbook) (*uint, error) {
-	result := db.Save(&passbook)
+func (passbookRepository DefaultPassbookRepository) Update(db *gorm.DB, passbook *Passbook) (*uint, error) {
+	result := db.Save(passbook)
 	if result.Error != nil {
 		return nil, result.Error
 	}

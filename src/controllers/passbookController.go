@@ -20,23 +20,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type PassbookController interface {
-	CreateGetPassbookHandler(w http.ResponseWriter, r *http.Request)
-	CreatePassbook(c *fiber.Ctx) error
-	GetPassbook(c *fiber.Ctx) error
-}
-
-type DefaultPassbookController struct {
+type PassbookController struct {
 	context         context.Context
 	authen          authentication.Authentication
 	passbookService services.PassbookService
 }
 
 func NewPassbookController(context context.Context, authen authentication.Authentication, passbookService services.PassbookService) PassbookController {
-	return DefaultPassbookController{context: context, authen: authen, passbookService: passbookService}
+	return PassbookController{context: context, authen: authen, passbookService: passbookService}
 }
 
-func (passbookController DefaultPassbookController) CreateGetPassbookHandler(w http.ResponseWriter, r *http.Request) {
+func (passbookController PassbookController) CreateGetPassbookHandler(w http.ResponseWriter, r *http.Request) {
 	provider, config, _ := passbookController.authen.GetProvider()
 
 	if r.URL.Query().Get("access_token") == "" {
@@ -72,22 +66,102 @@ func (passbookController DefaultPassbookController) CreateGetPassbookHandler(w h
 	w.Write(data)
 }
 
-func (passbookController DefaultPassbookController) GetPassbook(c *fiber.Ctx) error {
+func (passbookController PassbookController) GetPassbooksWithOwner(c *fiber.Ctx) error {
 	err := validateToken(c, passbookController.context)
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
 		return c.JSON(fiber.Map{"message": err.Error()})
 	}
-	result, err := passbookController.passbookService.FindPassbookCurrentDate(c.Params("owner"))
+	result, err := passbookController.passbookService.FindPassbooksWithOwner(c.Params("owner"))
 	if err != nil {
 		c.Status(fiber.StatusNotFound)
 		return c.JSON(fiber.Map{"message": err.Error()})
 	}
 
-	return c.JSON(result)
+	return c.JSON(fiber.Map{"data": result})
 }
 
-func (passbookController DefaultPassbookController) CreatePassbook(c *fiber.Ctx) error {
+func (passbookController PassbookController) GetPassbooks(c *fiber.Ctx) error {
+
+	err := validateToken(c, passbookController.context)
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+	result, err := passbookController.passbookService.FindPassbooks()
+	if err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"data": result})
+}
+
+func (passbookController PassbookController) GetTransactions(c *fiber.Ctx) error {
+	err := validateToken(c, passbookController.context)
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+	result, err := passbookController.passbookService.FindTransactionOfPassbooksWithCurrentDate()
+	if err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"data": result})
+}
+
+func (passbookController PassbookController) GetTransactionsWithDate(c *fiber.Ctx) error {
+	err := validateToken(c, passbookController.context)
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+	result, err := passbookController.passbookService.FindTransactionOfPassbooksWithDate(c.Params("date"))
+	if err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"data": result})
+}
+
+func (passbookController PassbookController) GetTransactionsWithOwner(c *fiber.Ctx) error {
+	err := validateToken(c, passbookController.context)
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+	result, err := passbookController.passbookService.FindTransactionOfPassbooksWithCurrentDateAndOwner(c.Params("owner"))
+	if err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"data": result})
+}
+
+func (passbookController PassbookController) GetTransactionsWithDateAndOwner(c *fiber.Ctx) error {
+	err := validateToken(c, passbookController.context)
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+	result, err := passbookController.passbookService.FindTransactionOfPassbooksWithDateAndOwner(c.Params("date"), c.Params("owner"))
+	if err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{"message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"data": result})
+}
+
+func (passbookController PassbookController) CreatePassbook(c *fiber.Ctx) error {
 	err := validateToken(c, passbookController.context)
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
@@ -130,6 +204,9 @@ func validateToken(c *fiber.Ctx, context context.Context) error {
 		}
 
 		key, _ := set.LookupKeyID(keyId)
+		if key == nil {
+			return nil, errors.New("key is null")
+		}
 
 		var rawkey interface{} // This is the raw key, like *rsa.PrivateKey or *ecdsa.PrivateKey
 		if err := key.Raw(&rawkey); err != nil {

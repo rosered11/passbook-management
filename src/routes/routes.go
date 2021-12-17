@@ -18,8 +18,11 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	// authentication
 	authen := authentication.NewAuthentication(ctx)
 
+	// repository
+	repository := database.NewRepository()
+
 	// unitofwork + repositories
-	unitofwork := database.NewUnitOfWork(db)
+	unitofwork := database.NewUnitOfWork(db, repository)
 
 	// services
 	passbookService := services.NewPassbookService(unitofwork)
@@ -43,5 +46,10 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	// controller path
 	passbook := api.Group("passbook")
 	passbook.Post("/", passbookController.CreatePassbook)
-	passbook.Get("/owner/:owner", passbookController.GetPassbook)
+	passbook.Get("/", passbookController.GetPassbooks)
+	passbook.Get("/owner/:owner", passbookController.GetPassbooksWithOwner)
+	passbook.Get("/transaction", passbookController.GetTransactions)
+	passbook.Get("/transaction/owner/:owner", passbookController.GetTransactionsWithOwner)
+	passbook.Get("/transaction/date/:date", passbookController.GetTransactionsWithDate)
+	passbook.Get("/transaction/owner/:owner/date/:date", passbookController.GetTransactionsWithDateAndOwner)
 }

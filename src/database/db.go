@@ -9,7 +9,9 @@ import (
 
 func Connect() *gorm.DB {
 	// Setup database
-	db, _ := gorm.Open(postgres.Open(os.Getenv("DATABASE_URL")), &gorm.Config{})
+	db, _ := gorm.Open(postgres.Open(os.Getenv("DATABASE_URL")), &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
 	return db
 }
 
